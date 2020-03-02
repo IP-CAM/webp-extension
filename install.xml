@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+	<name>OCMOD Save Images in WebP</name>
+	<code>ocmod_webp_image</code>
+    <version>2.1</version>
+    <author>Anas Dawood</author>
+	<link></link>
+	<file path="system/library/image.php">
+	<operation error="log">
+			<search><![CDATA[if ($this->mime == 'image/gif')]]></search>
+			<add position="before"><![CDATA[if ($this->mime == 'image/webp') {
+				$this->image = imagecreatefromwebp($file);
+			}
+			]]></add>
+		</operation>
+		<operation error="skip">
+			<search><![CDATA[imagedestroy($this->image);]]></search>
+			<add position="before"><![CDATA[elseif ($extension == 'webp') {
+                            imagewebp($this->image, $file);
+			}]]></add>
+		</operation>
+	</file>
+	
+	<file path="admin/model/tool/image.php">
+	<operation error="log">
+			<search><![CDATA[if (!in_array($image_type, array(IMAGETYPE_PNG, IMAGETYPE_JPEG, IMAGETYPE_GIF)))]]></search>
+			<add position="replace"><![CDATA[
+			if (!in_array($image_type, array(IMAGETYPE_PNG, IMAGETYPE_JPEG, IMAGETYPE_GIF,18)))
+			]]></add>
+		</operation>
+	</file>
+	<file path="catalog/model/tool/image.php">
+	<operation error="log">
+			<search><![CDATA[if (!in_array($image_type, array(IMAGETYPE_PNG, IMAGETYPE_JPEG, IMAGETYPE_GIF)))]]></search>
+			<add position="replace"><![CDATA[
+			if (!in_array($image_type, array(IMAGETYPE_PNG, IMAGETYPE_JPEG, IMAGETYPE_GIF,18)))
+			]]></add>
+		</operation>
+	</file>
+		
+	<file path="admin/controller/common/filemanager.php">
+	<operation error="skip">
+			<search><![CDATA[$files = glob($directory . '/' . $filter_name . '*.{jpg,jpeg,png,gif,JPG,JPEG,PNG,GIF}', GLOB_BRACE);]]></search>
+			<add position="replace"><![CDATA[
+			$files = glob($directory . '/' . $filter_name . '*.{jpg,jpeg,png,gif,webp,JPG,JPEG,PNG,GIF,WEBP}', GLOB_BRACE);
+			]]></add>
+		</operation>
+		<operation error="skip">
+			<search><![CDATA[move_uploaded_file($file['tmp_name'], $directory . '/' . $filename);]]></search>
+			<add position="after"><![CDATA[
+		                               $isJPG=array('jpg');
+                                        if (in_array(utf8_strtolower(utf8_substr(strrchr($filename, '.'), 1)), $isJPG)) {
+                                        $save_to_path = $directory . '/' . $filename;
+                                        $im = imageCreateFromJpeg($save_to_path);
+                                        imagewebp($im, substr_replace($save_to_path , 'webp', strrpos($save_to_path , '.') +1));
+					}
+			]]></add>
+		</operation>
+	</file>
+</modification>

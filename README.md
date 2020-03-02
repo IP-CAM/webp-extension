@@ -1,4 +1,5 @@
 Prerequisites:
+
 -you need to be running on php 7.1
 - you need to have ImageMagic installed on your server.
 
